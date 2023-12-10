@@ -5,11 +5,12 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 )
 
-func GetTweet(tweetUrl, apiKey, rapidApiHost) (string, error) {
+func GetTweet(tweetUrl string, rapidApiKey string, rapidApiHost string) (string, error) {
 	tweetID, err := extractTweetID(tweetUrl)
-	url := fmt.Sprintf("https://twitter-api45.p.rapidapi.com/tweet.php?id=%s", tweetId)
+	url := fmt.Sprintf("https://twitter-api45.p.rapidapi.com/tweet.php?id=%s", tweetID)
 
 	// Create a new request
 	req, err := http.NewRequest("GET", url, nil)
@@ -18,7 +19,7 @@ func GetTweet(tweetUrl, apiKey, rapidApiHost) (string, error) {
 	}
 
 	// Add required headers
-	req.Header.Add("X-Rapidapi-Key", apiKey)
+	req.Header.Add("X-Rapidapi-Key", rapidApiKey)
 	req.Header.Add("X-Rapidapi-Host", rapidApiHost)
 
 	// Make the request
@@ -27,7 +28,12 @@ func GetTweet(tweetUrl, apiKey, rapidApiHost) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			panic(err)
+		}
+	}(resp.Body)
 
 	// Read the response body
 	body, err := io.ReadAll(resp.Body)
@@ -51,10 +57,10 @@ func GetTweet(tweetUrl, apiKey, rapidApiHost) (string, error) {
 }
 
 func extractTweetID(url string) (string, error) {
-    re := regexp.MustCompile(`status/(\d+)`)
-    matches := re.FindStringSubmatch(url)
-    if len(matches) < 2 {
-        return "", fmt.Errorf("no tweet ID found in URL")
-    }
-    return matches[1], nil
+	re := regexp.MustCompile(`status/(\d+)`)
+	matches := re.FindStringSubmatch(url)
+	if len(matches) < 2 {
+		return "", fmt.Errorf("no tweet ID found in URL")
+	}
+	return matches[1], nil
 }
