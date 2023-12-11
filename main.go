@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"twitter-to-telegram/api"
 )
 
@@ -21,7 +20,7 @@ func main() {
 	rapidApiHost := os.Getenv("RAPID_API_HOST")
 	expectedAuthKey := os.Getenv("AUTH_KEY")
 
-	http.HandleFunc("/getTweet", func(w http.ResponseWriter, r *http.Request) {
+	handler := func(w http.ResponseWriter, r *http.Request) {
 		var reqBody RequestBody
 		body, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -51,10 +50,12 @@ func main() {
 			http.Error(w, fmt.Sprintf("Error getting tweet: %v", err), http.StatusInternalServerError)
 			return
 		}
-
+		//_, err = utils.HandleTweet(res)
+		//tempd := "dsd"
 		// 打印结果
 		fmt.Fprintf(w, "Response: %v", res)
-	})
+	}
+	http.HandleFunc("/getTweet", handler)
 
 	fmt.Println("Server is starting...")
 	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
