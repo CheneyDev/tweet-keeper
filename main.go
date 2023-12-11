@@ -52,8 +52,11 @@ func main() {
 			return
 		}
 		tweet, err := utils.HandleTweet(res)
+		tweetText := fmt.Sprintf("%s\n%s", tweet.Text, tweet.Author.ScreenName)
+		tweetPhotos := tweet.Media.Photo
+		tweetVideos := tweet.Media.Video
 		// 打印结果
-		fmt.Fprintf(w, "Response: %v", tweet)
+		fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
 	}
 	http.HandleFunc("/getTweet", handler)
 
