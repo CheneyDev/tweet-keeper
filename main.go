@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"twitter-to-telegram/api"
+	"twitter-to-telegram/utils"
 )
 
 type RequestBody struct {
@@ -50,10 +51,9 @@ func main() {
 			http.Error(w, fmt.Sprintf("Error getting tweet: %v", err), http.StatusInternalServerError)
 			return
 		}
-		//_, err = utils.HandleTweet(res)
-		//tempd := "dsd"
+		tweet, err := utils.HandleTweet(res)
 		// 打印结果
-		fmt.Fprintf(w, "Response: %v", res)
+		fmt.Fprintf(w, "Response: %v", tweet)
 	}
 	http.HandleFunc("/getTweet", handler)
 
