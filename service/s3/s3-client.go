@@ -5,6 +5,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"log"
 	"os"
 )
 
@@ -13,14 +14,19 @@ type Client struct {
 }
 
 func NewS3Client() *Client {
-	region := os.Getenv("AWS_REGION")
-	accessKeyID := os.Getenv("AWS_ACCESS_KEY_ID")
-	accessKeySecret := os.Getenv("AWS_SECRET_ACCESS_KEY")
+	keyId := os.Getenv("S3_KEY_ID")
+	secretKey := os.Getenv("S3_SECRET_KEY")
+	region := os.Getenv("S3_REGION")
+	endPoint := os.Getenv("S3_ENDPOINT")
 
-	sess := session.Must(session.NewSession(&aws.Config{
+	sess, err := session.NewSession(&aws.Config{
+		Endpoint:    aws.String(endPoint),
 		Region:      aws.String(region),
-		Credentials: credentials.NewStaticCredentials(accessKeyID, accessKeySecret, ""),
-	}))
+		Credentials: credentials.NewStaticCredentials(keyId, secretKey, ""),
+	})
+	if err != nil {
+		log.Fatalf("Failed to create AWS session: %s", err)
+	}
 
 	return &Client{
 		Service: s3.New(sess),
