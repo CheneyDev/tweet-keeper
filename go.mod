@@ -27,4 +27,5 @@ require (
 	github.com/aws/smithy-go v1.19.0 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/joho/godotenv v1.5.1 // indirect
+	github.com/jomei/notionapi v1.12.9 // indirect
 )

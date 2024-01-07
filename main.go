@@ -1,19 +1,66 @@
 package main
 
 import (
-	"encoding/json"
+	"context"
 	"fmt"
-	"io/ioutil"
+	"github.com/joho/godotenv"
+	"github.com/jomei/notionapi"
 	"log"
-	"net/http"
 	"os"
-	"tweet-keeper/api"
-	"tweet-keeper/utils"
 )
 
 type RequestBody struct {
 	TweetURL string `json:"tweetUrl"`
 	AuthKey  string `json:"authKey"`
+}
+
+func main() {
+	// 加载环境变量，如果不存在则使用默认值
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: Error loading .env file, using default values")
+	}
+	notionToken := os.Getenv("NOTION_TOKEN")
+	pageID := os.Getenv("NOTION_PAGE_ID")
+
+	if notionToken == "" || pageID == "" {
+		log.Fatal("NOTION_TOKEN and NOTION_PAGE_ID must be set")
+	}
+	notionClient := notionapi.NewClient(notionapi.Token(notionToken))
+	response, err := notionClient.Page.Get(context.Background(), notionapi.PageID(pageID))
+	if err != nil {
+		log.Fatalf("Error getting Notion page: %v", err)
+	}
+	fmt.Printf("Response: %v\n", response)
+	// 获取页面的块
+	blockID := notionapi.BlockID(pageID)
+	pagination := &notionapi.Pagination{
+		StartCursor: "",
+		PageSize:    100,
+	}
+	for {
+		response, err := notionClient.Block.GetChildren(context.Background(), blockID, pagination)
+		if err != nil {
+			log.Fatalf("Error getting Notion page blocks: %v", err)
+		}
+
+		// 遍历页面块并打印
+		for _, block := range response.Results {
+			switch block.GetType() {
+			case notionapi.BlockTypeParagraph:
+				paragraph := block.(*notionapi.ParagraphBlock)
+				fmt.Print(paragraph)
+				fmt.Println("\n")
+				// 可以添加更多的case来处理不同的块类型
+			}
+		}
+
+		// 检查是否还有更多的块要加载
+		if !response.HasMore {
+			break
+		}
+		// 更新分页游标
+		pagination.StartCursor = notionapi.Cursor(response.NextCursor)
+	}
 }
 
 //func main() {
@@ -61,50 +108,50 @@ type RequestBody struct {
 //	fmt.Println("List of objects in bucket:", result)
 //}
 
-func main() {
-	rapidApiKey := os.Getenv("RAPID_API_KEY")
-	rapidApiHost := os.Getenv("RAPID_API_HOST")
-	expectedAuthKey := os.Getenv("AUTH_KEY")
-
-	handler := func(w http.ResponseWriter, r *http.Request) {
-		var reqBody RequestBody
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			http.Error(w, "Error reading request body", http.StatusInternalServerError)
-			return
-		}
-		defer r.Body.Close()
-
-		err = json.Unmarshal(body, &reqBody)
-		if err != nil {
-			http.Error(w, "Error parsing JSON request body", http.StatusBadRequest)
-			return
-		}
-
-		if reqBody.TweetURL == "" {
-			http.Error(w, "tweetUrl is required", http.StatusBadRequest)
-			return
-		}
-
-		if expectedAuthKey != reqBody.AuthKey {
-			http.Error(w, "Invalid authentication key", http.StatusUnauthorized)
-			return
-		}
-
-		res, err := api.GetTweet(reqBody.TweetURL, rapidApiKey, rapidApiHost)
-		if err != nil {
-			http.Error(w, fmt.Sprintf("Error getting tweet: %v", err), http.StatusInternalServerError)
-			return
-		}
-		tweet, err := utils.HandleTweet(res)
-		tweetText := fmt.Sprintf("%s\n%s", tweet.Text, tweet.Author.ScreenName)
-		tweetPhotos := tweet.Media.Photo
-		tweetVideos := tweet.Media.Video
-		// 打印结果
-		fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
-	}
-	http.HandleFunc("/getTweet", handler)
-
-	fmt.Println("Server is starting...")
-	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
-}
+//func main() {
+//	rapidApiKey := os.Getenv("RAPID_API_KEY")
+//	rapidApiHost := os.Getenv("RAPID_API_HOST")
+//	expectedAuthKey := os.Getenv("AUTH_KEY")
+//
+//	handler := func(w http.ResponseWriter, r *http.Request) {
+//		var reqBody RequestBody
+//		body, err := ioutil.ReadAll(r.Body)
+//		if err != nil {
+//			http.Error(w, "Error reading request body", http.StatusInternalServerError)
+//			return
+//		}
+//		defer r.Body.Close()
+//
+//		err = json.Unmarshal(body, &reqBody)
+//		if err != nil {
+//			http.Error(w, "Error parsing JSON request body", http.StatusBadRequest)
+//			return
+//		}
+//
+//		if reqBody.TweetURL == "" {
+//			http.Error(w, "tweetUrl is required", http.StatusBadRequest)
+//			return
+//		}
+//
+//		if expectedAuthKey != reqBody.AuthKey {
+//			http.Error(w, "Invalid authentication key", http.StatusUnauthorized)
+//			return
+//		}
+//
+//		res, err := api.GetTweet(reqBody.TweetURL, rapidApiKey, rapidApiHost)
+//		if err != nil {
+//			http.Error(w, fmt.Sprintf("Error getting tweet: %v", err), http.StatusInternalServerError)
+//			return
+//		}
+//		tweet, err := utils.HandleTweet(res)
+//		tweetText := fmt.Sprintf("%s\n%s", tweet.Text, tweet.Author.ScreenName)
+//		tweetPhotos := tweet.Media.Photo
+//		tweetVideos := tweet.Media.Video
+//		// 打印结果
+//		fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
+//	}
+//	http.HandleFunc("/getTweet", handler)
+//
+//	fmt.Println("Server is starting...")
+//	log.Fatal(http.ListenAndServe("0.0.0.0:8080", nil))
+//}
