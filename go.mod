@@ -1,4 +1,4 @@
-module twitter-to-telegram
+module tweet-keeper
 
 go 1.21.4
 

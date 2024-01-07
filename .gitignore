@@ -7,7 +7,7 @@ docker-compose.yml
 ### dotenv ###
 .env
 
-twitter-to-telegram
+tweet-keeper
 
 ### Git ###
 # Created by git for backups. To disable backups in Git:

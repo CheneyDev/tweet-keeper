@@ -7,7 +7,7 @@ import (
 	"github.com/joho/godotenv"
 	"log"
 	"os"
-	"twitter-to-telegram/service/s3-storage"
+	"tweet-keeper/service/s3-storage"
 )
 
 type RequestBody struct {
