@@ -1,8 +1,6 @@
 package main
 
 import (
-	"context"
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/jomei/notionapi"
 	"log"
@@ -26,41 +24,7 @@ func main() {
 		log.Fatal("NOTION_TOKEN and NOTION_PAGE_ID must be set")
 	}
 	notionClient := notionapi.NewClient(notionapi.Token(notionToken))
-	response, err := notionClient.Page.Get(context.Background(), notionapi.PageID(pageID))
-	if err != nil {
-		log.Fatalf("Error getting Notion page: %v", err)
-	}
-	fmt.Printf("Response: %v\n", response)
-	// 获取页面的块
-	blockID := notionapi.BlockID(pageID)
-	pagination := &notionapi.Pagination{
-		StartCursor: "",
-		PageSize:    100,
-	}
-	for {
-		response, err := notionClient.Block.GetChildren(context.Background(), blockID, pagination)
-		if err != nil {
-			log.Fatalf("Error getting Notion page blocks: %v", err)
-		}
 
-		// 遍历页面块并打印
-		for _, block := range response.Results {
-			switch block.GetType() {
-			case notionapi.BlockTypeParagraph:
-				paragraph := block.(*notionapi.ParagraphBlock)
-				fmt.Print(paragraph)
-				fmt.Println("\n")
-				// 可以添加更多的case来处理不同的块类型
-			}
-		}
-
-		// 检查是否还有更多的块要加载
-		if !response.HasMore {
-			break
-		}
-		// 更新分页游标
-		pagination.StartCursor = notionapi.Cursor(response.NextCursor)
-	}
 }
 
 //func main() {
