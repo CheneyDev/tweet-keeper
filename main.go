@@ -25,6 +25,8 @@ func main() {
 	}
 	notionClient := notionapi.NewClient(notionapi.Token(notionToken))
 
+	// 创建一个新的文本段落块
+
 }
 
 //func main() {
