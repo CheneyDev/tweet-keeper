@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"github.com/joho/godotenv"
 	"github.com/jomei/notionapi"
 	"log"
 	"os"
+	"time"
 )
 
 type RequestBody struct {
@@ -26,6 +28,43 @@ func main() {
 	notionClient := notionapi.NewClient(notionapi.Token(notionToken))
 
 	// 创建一个新的文本段落块
+	// Assume we have the parent block ID to which we want to append a child block.
+	parentBlockID := notionapi.BlockID(pageID)
+
+	// Define the paragraph block we want to add.
+	paragraphBlock := notionapi.ParagraphBlock{
+		Paragraph: notionapi.Paragraph{
+			RichText: []notionapi.RichText{
+				{
+					Type: notionapi.ObjectTypeText,
+					Text: &notionapi.Text{
+						Content: "Hello from Notion API!",
+					},
+				},
+			},
+		},
+	}
+	// Set the type of the block.
+	paragraphBlock.Type = "paragraph"
+
+	// Set the base block properties.
+	paragraphBlock.Object = "block"
+	paragraphBlock.HasChildren = false
+	currentTime := time.Now()
+	paragraphBlock.CreatedTime = &currentTime
+	paragraphBlock.LastEditedTime = &currentTime
+
+	// Append the new block as a child to the parent block.
+	appendBlockRequest := &notionapi.AppendBlockChildrenRequest{
+		Children: []notionapi.Block{&paragraphBlock},
+	}
+
+	response, err := notionClient.Block.AppendChildren(context.Background(), parentBlockID, appendBlockRequest)
+	if err != nil {
+		log.Fatalf("Failed to append block: %v\n", err)
+	}
+
+	log.Printf("Appended block with response: %+v\n", response)
 
 }
 
