@@ -31,6 +31,8 @@ func main() {
 	// Assume we have the parent block ID to which we want to append a child block.
 	parentBlockID := notionapi.BlockID(pageID)
 
+	currentTime := time.Now()
+
 	// Define the paragraph block we want to add.
 	paragraphBlock := notionapi.ParagraphBlock{
 		Paragraph: notionapi.Paragraph{
@@ -38,9 +40,23 @@ func main() {
 				{
 					Type: notionapi.ObjectTypeText,
 					Text: &notionapi.Text{
-						Content: "Hello from Notion API!",
+						Content: "Hello from Notion APIssss!",
 					},
 				},
+			},
+		},
+	}
+	imageBlock := notionapi.ImageBlock{
+		BasicBlock: notionapi.BasicBlock{
+			Type:           "image",
+			Object:         "block",
+			CreatedTime:    &currentTime,
+			LastEditedTime: &currentTime,
+		},
+		Image: notionapi.Image{
+			Type: "external",
+			External: &notionapi.FileObject{
+				URL: "https://f005.backblazeb2.com/file/nsfw-twitter/IMG_9961.JPG",
 			},
 		},
 	}
@@ -50,7 +66,6 @@ func main() {
 	// Set the base block properties.
 	paragraphBlock.Object = "block"
 	paragraphBlock.HasChildren = false
-	currentTime := time.Now()
 	paragraphBlock.CreatedTime = &currentTime
 	paragraphBlock.LastEditedTime = &currentTime
 
@@ -59,11 +74,19 @@ func main() {
 		Children: []notionapi.Block{&paragraphBlock},
 	}
 
+	appendImageBlockRequest := &notionapi.AppendBlockChildrenRequest{
+		Children: []notionapi.Block{&imageBlock},
+	}
+
 	response, err := notionClient.Block.AppendChildren(context.Background(), parentBlockID, appendBlockRequest)
 	if err != nil {
 		log.Fatalf("Failed to append block: %v\n", err)
 	}
 
+	response, err = notionClient.Block.AppendChildren(context.Background(), parentBlockID, appendImageBlockRequest)
+	if err != nil {
+		log.Fatalf("Failed to append image block: %v\n", err)
+	}
 	log.Printf("Appended block with response: %+v\n", response)
 
 }
