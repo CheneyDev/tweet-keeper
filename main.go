@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/jomei/notionapi"
 	"log"
@@ -88,6 +89,68 @@ func main() {
 		log.Fatalf("Failed to append image block: %v\n", err)
 	}
 	log.Printf("Appended block with response: %+v\n", response)
+
+	// 创建列集合块
+	columnListBlock := notionapi.ColumnListBlock{
+		BasicBlock: notionapi.BasicBlock{
+			Object:         "block",
+			Type:           "column_list",
+			CreatedTime:    &currentTime,
+			LastEditedTime: &currentTime,
+		},
+	}
+
+	// 图像 URL 列表
+	imageURLs := []string{
+		"https://f005.backblazeb2.com/file/nsfw-twitter/IMG_9961.JPG",
+		"https://f005.backblazeb2.com/file/nsfw-twitter/IMG_9961.JPG",
+		// 添加更多图片 URL
+	}
+
+	// 添加列块到列集合中
+	for _, imageURL := range imageURLs {
+		columnBlock := notionapi.ColumnBlock{
+			BasicBlock: notionapi.BasicBlock{
+				Object:         "block",
+				Type:           "column",
+				CreatedTime:    &currentTime,
+				LastEditedTime: &currentTime,
+			},
+			Column: notionapi.Column{
+				Children: []notionapi.Block{
+					&notionapi.ImageBlock{
+						BasicBlock: notionapi.BasicBlock{
+							Object:         "block",
+							Type:           "image",
+							CreatedTime:    &currentTime,
+							LastEditedTime: &currentTime,
+						},
+						Image: notionapi.Image{
+							Type: "external",
+							External: &notionapi.FileObject{
+								URL: imageURL,
+							},
+						},
+					},
+				},
+			},
+		}
+		// 将列块添加到列集合的 Children 中
+		columnListBlock.ColumnList.Children = append(columnListBlock.ColumnList.Children, &columnBlock)
+	}
+
+	// 构造请求体，包含列集合块
+	appendColumnsBlockRequest := &notionapi.AppendBlockChildrenRequest{
+		Children: []notionapi.Block{&columnListBlock},
+	}
+
+	// 调用 Notion API 追加子块
+	response, err = notionClient.Block.AppendChildren(context.Background(), parentBlockID, appendColumnsBlockRequest)
+	if err != nil {
+		log.Fatalf("Failed to append column list block: %v\n", err)
+	}
+
+	fmt.Printf("Appended column list block with response: %+v\n", response)
 
 }
 
