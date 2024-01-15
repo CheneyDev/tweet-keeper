@@ -18,6 +18,12 @@ bucket-name/user-likes/username/YYYY/MM/DD/username-like-YYYY-MM-DD-XXXX.ext
 
 用户名，用户昵称，发布日期，推文，媒体文件
 
+### 存入 Notion
+
+获取文案 -> 获取媒体文件 -> 文件数量 -> 每两个一行
+
+![image-20240115234312133](./assets/README/image-20240115234312133.png)
+
 ### 请求示例
 
 /getTweet
