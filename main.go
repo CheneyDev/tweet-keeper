@@ -1,8 +1,14 @@
 package main
 
 import (
+	"encoding/json"
+	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
+	"tweet-keeper/api"
+	"tweet-keeper/utils"
 )
 
 type RequestBody struct {
@@ -234,7 +240,10 @@ func main() {
 		tweetPhotos := tweet.Media.Photo
 		tweetVideos := tweet.Media.Video
 		// 打印结果
-		fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
+		_, err = fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
+		if err != nil {
+			return
+		}
 	}
 	http.HandleFunc("/getTweet", handler)
 
