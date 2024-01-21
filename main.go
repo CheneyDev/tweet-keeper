@@ -248,32 +248,42 @@ func main() {
 			tweetText = fmt.Sprintf("%s - %s", tweet.Text, tweet.Author.Name)
 		}
 
-		var tweetPhotos []utils.Photo
+		var tweetPhotos []string
 		if len(tweet.Media.Photo) > 0 {
-			tweetPhotos = tweet.Media.Photo
-			//fmt.Println(tweetPhotos[0].MediaURLHttps)
+			for _, tweetPhoto := range tweet.Media.Photo {
+				tweetPhotos = append(tweetPhotos, tweetPhoto.MediaURLHttps)
+
+			}
 		} else {
 			tweetPhotos = nil
 		}
 
 		var tweetVideos []utils.Video
+		var maxBitrate int
+		var maxVideoUrl string
 		if len(tweet.Media.Video) > 0 {
 			tweetVideos = tweet.Media.Video
 			for _, tweetVideo := range tweetVideos {
-				maxBitrate := tweetVideo.Variants[0].Bitrate
-				maxVideoUrl := tweetVideo.Variants[0].URL
+				maxBitrate = tweetVideo.Variants[0].Bitrate
+				maxVideoUrl = tweetVideo.Variants[0].URL
 				for _, variants := range tweetVideo.Variants {
 					if variants.Bitrate > maxBitrate {
 						maxBitrate = variants.Bitrate
 						maxVideoUrl = variants.URL
 					}
 				}
-				fmt.Println(maxBitrate, maxVideoUrl)
 			}
-
 		} else {
 			tweetVideos = nil
 		}
+		finalPrint := fmt.Sprintf("%v\n", tweetText)
+		if tweetPhotos != nil {
+			finalPrint += fmt.Sprintf("%v\n", tweetPhotos)
+		}
+		if maxVideoUrl != "" {
+			finalPrint += fmt.Sprintf("%v\n", maxVideoUrl)
+		}
+		fmt.Println(finalPrint)
 		_, err = fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
 		if err != nil {
 			return
