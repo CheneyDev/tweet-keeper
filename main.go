@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/joho/godotenv"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -201,6 +202,10 @@ type RequestBody struct {
 //}
 
 func main() {
+	// 加载环境变量，如果不存在则使用默认值
+	if err := godotenv.Load(); err != nil {
+		log.Println("Warning: Error loading .env file, using default values")
+	}
 	rapidApiKey := os.Getenv("RAPID_API_KEY")
 	rapidApiHost := os.Getenv("RAPID_API_HOST")
 	expectedAuthKey := os.Getenv("AUTH_KEY")
@@ -236,9 +241,31 @@ func main() {
 			return
 		}
 		tweet, err := utils.HandleTweet(res)
-		tweetText := fmt.Sprintf("%s\n%s", tweet.Text, tweet.Author.ScreenName)
-		tweetPhotos := tweet.Media.Photo
-		tweetVideos := tweet.Media.Video
+		var tweetText string
+		if tweet.Text == "" {
+			tweetText = fmt.Sprintf("%s", tweet.Author.Name)
+		} else {
+			tweetText = fmt.Sprintf("%s - %s", tweet.Text, tweet.Author.Name)
+		}
+
+		var tweetPhotos []utils.Photo
+		if len(tweet.Media.Photo) > 0 {
+			tweetPhotos = tweet.Media.Photo
+			//fmt.Println(tweetPhotos[0].MediaURLHttps)
+			tweetPhotos = nil
+			if tweetPhotos == nil {
+				fmt.Println("nil")
+			}
+		} else {
+			tweetPhotos = nil
+		}
+
+		var tweetVideos []utils.Video
+		if len(tweet.Media.Video) > 0 {
+			tweetVideos = tweet.Media.Video
+		} else {
+			tweetVideos = nil
+		}
 		// 打印结果
 		_, err = fmt.Fprintf(w, "Response: %v\n%v\n%v\n", tweetText, tweetPhotos, tweetVideos)
 		if err != nil {
