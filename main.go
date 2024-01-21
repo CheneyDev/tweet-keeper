@@ -259,15 +259,18 @@ func main() {
 		var tweetVideos []utils.Video
 		if len(tweet.Media.Video) > 0 {
 			tweetVideos = tweet.Media.Video
-			maxBitrate := tweetVideos[0].Variants[0].Bitrate
-			maxVideoUrl := tweetVideos[0].Variants[0].URL
-			for _, variants := range tweetVideos[0].Variants {
-				if variants.Bitrate > maxBitrate {
-					maxBitrate = variants.Bitrate
-					maxVideoUrl = variants.URL
+			for _, tweetVideo := range tweetVideos {
+				maxBitrate := tweetVideo.Variants[0].Bitrate
+				maxVideoUrl := tweetVideo.Variants[0].URL
+				for _, variants := range tweetVideo.Variants {
+					if variants.Bitrate > maxBitrate {
+						maxBitrate = variants.Bitrate
+						maxVideoUrl = variants.URL
+					}
 				}
+				fmt.Println(maxBitrate, maxVideoUrl)
 			}
-			fmt.Println(maxBitrate, maxVideoUrl)
+
 		} else {
 			tweetVideos = nil
 		}
