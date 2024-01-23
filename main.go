@@ -210,6 +210,15 @@ func main() {
 	rapidApiHost := os.Getenv("RAPID_API_HOST")
 	expectedAuthKey := os.Getenv("AUTH_KEY")
 
+	// 获取S3桶名，如果环境变量不存在则使用默认桶名
+	bucketName := os.Getenv("S3_BUCKET_NAME")
+	if bucketName == "" {
+		log.Fatal("S3_BUCKET_NAME environment variable is not set.")
+	}
+
+	// 创建S3客户端实例
+	//s3Client := s3_storage.NewS3Client()
+
 	handler := func(w http.ResponseWriter, r *http.Request) {
 		var reqBody RequestBody
 		body, err := ioutil.ReadAll(r.Body)
